@@ -57,7 +57,7 @@ class UnivariateGaussian:
         if len(X) == 1:
             self.var_ = 0
         elif not self.biased_: # Unbiased sample variance mean
-            self.var_ = np.sum(np.power(X - self.mu_,2)) / len(X) - 1
+            self.var_ = np.sum(np.power(X - self.mu_ ,2)) / (len(X) - 1)
         else: # Biased sample variance mean
             self.var_ = np.mean(np.power(X - self.mu_,2))
 
