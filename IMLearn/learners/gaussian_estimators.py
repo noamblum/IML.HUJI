@@ -51,9 +51,6 @@ class UnivariateGaussian:
         Sets `self.mu_`, `self.var_` attributes according to calculated estimation (where
         estimator is either biased or unbiased). Then sets `self.fitted_` attribute to `True`
         """
-        if not X:
-            self.fitted_, self.mu_, self.var_ = False, None, None 
-            return self
 
         self.mu_ = np.mean(X)
 
