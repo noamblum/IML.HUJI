@@ -87,7 +87,8 @@ class UnivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+        coefficient = 1/np.sqrt(2 * np.pi * self.var_)
+        return coefficient * np.exp((-1 * np.power(X - self.mu_,2)) / (2 * self.var_))
 
     @staticmethod
     def log_likelihood(mu: float, sigma: float, X: np.ndarray) -> float:
