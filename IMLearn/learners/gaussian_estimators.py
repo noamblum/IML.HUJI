@@ -154,7 +154,7 @@ class MultivariateGaussian:
         Sets `self.mu_`, `self.cov_` attributes according to calculated estimation.
         Then sets `self.fitted_` attribute to `True`
         """
-        
+
         self.fitted_ = True
 
         self.mu_ = np.average(X, axis=0) # 0 is axis of samples
@@ -223,4 +223,9 @@ class MultivariateGaussian:
         log_likelihood: float
             log-likelihood calculated over all input data and under given parameters of Gaussian
         """
-        raise NotImplementedError()
+        dim = mu.shape[0]
+        n_samples = X.shape[0]
+
+        coefficient = -0.5 * dim * n_samples * np.log(2 * np.pi) - 0.5 * n_samples * np.linalg.det(cov)
+        centered_samples = X - mu
+        return coefficient - 0.5 * np.sum(MultivariateGaussian.mahalanobis_distance(centered_samples, centered_samples, cov), axis = 0)
