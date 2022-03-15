@@ -154,9 +154,13 @@ class MultivariateGaussian:
         Sets `self.mu_`, `self.cov_` attributes according to calculated estimation.
         Then sets `self.fitted_` attribute to `True`
         """
-        raise NotImplementedError()
-
+        
         self.fitted_ = True
+
+        self.mu_ = np.average(X, axis=0) # 0 is axis of samples
+        n_samples = X.shape[0]
+        centered_samples = X - self.mu_
+        self.cov_ = (1 / (n_samples - 1)) * np.sum(np.outer(centered_samples, centered_samples))
         return self
 
     def pdf(self, X: np.ndarray):
