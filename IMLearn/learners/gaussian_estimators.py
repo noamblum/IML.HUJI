@@ -183,7 +183,26 @@ class MultivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+
+        dim = self.mu_.shape[0]
+        if X.shape[1] != dim:
+            raise ValueError("Number of features must be equal to number of features fitted")
+        
+        coefficient = 1 / (np.sqrt(np.power(2 * np.pi, dim) * np.linalg.det(self.cov_)))
+        centered_samples = X - self.mu_
+        return coefficient * np.exp(-0.5 * MultivariateGaussian.mahalanobis_distance(centered_samples, centered_samples, self.cov_))
+
+    @staticmethod
+    def mahalanobis_distance(X1: np.ndarray, X2: np.ndarray, cov: np.ndarray) -> np.ndarray:
+        """Calculate the Mahalanobis distance (https://en.wikipedia.org/wiki/Mahalanobis_distance)
+            between two arrays vectors and a covariance matrix
+
+        Args:
+            X1 (np.ndarray of shape (n_samples, n_features)): The first vector array
+            X2 (np.ndarray of shape (n_samples, n_features)): The second vector array
+            cov (np.ndarray of shape (n_features, n_features)): The covariance matrix
+        """
+        return np.diag(np.transpose(X1) * np.linalg.inv(cov) * X2)
 
     @staticmethod
     def log_likelihood(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> float:
