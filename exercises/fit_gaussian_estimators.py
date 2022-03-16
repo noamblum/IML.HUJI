@@ -1,5 +1,7 @@
 from turtle import color
 from unicodedata import name
+
+from sklearn.covariance import log_likelihood
 from IMLearn.learners import UnivariateGaussian, MultivariateGaussian
 import numpy as np
 import plotly.graph_objects as go
@@ -38,7 +40,7 @@ def test_univariate_gaussian():
         go.Scatter(x=sizes, y=variances_diff, name= "Variance",
             line=dict(color='royalblue', width=2))
     )
-    difference_fig.update_layout(title = "Quality of estimation by amount of samples in estimation",
+    difference_fig.update_layout(title = "Difference Between Estimation and True Value Converges to 0",
                         xaxis_title="Amount of Samples",
                         yaxis_title="Distance from Real Value")
     difference_fig.show()
@@ -47,7 +49,7 @@ def test_univariate_gaussian():
     pdf_fig = go.Figure()
     pdf_fig.add_trace(go.Scatter(x=SAMPLES, y=estimator.pdf(SAMPLES), mode='markers',
                         marker=dict(color='firebrick'), showlegend=False))
-    pdf_fig.update_layout(title = "Estimated Point Density Function of Samples",
+    pdf_fig.update_layout(title = "Estimated Point Density Function of Samples Creates Gaussian",
                         xaxis_title="Sample Value",
                         yaxis_title="Estimated PDF Value")
     pdf_fig.show()
@@ -55,17 +57,47 @@ def test_univariate_gaussian():
 
 
 def test_multivariate_gaussian():
+    
+    TRUE_MU = np.array([0, 0, 4, 0])
+    TRUE_COVARIANCE = np.array([[1, 0.2, 0, 0.5],
+                                [0.2, 2, 0, 0],
+                                [0, 0, 1, 0],
+                                [0.5, 0, 0, 1]])
+    N_SAMPLES = 1000
+
     # Question 4 - Draw samples and print fitted model
-    raise NotImplementedError()
+    samples = np.random.multivariate_normal(TRUE_MU, TRUE_COVARIANCE, N_SAMPLES)
+    estimator = MultivariateGaussian().fit(samples)
+    print("Mu:\n", estimator.mu_, "\n")
+    print("Cov:\n", estimator.cov_)
 
     # Question 5 - Likelihood evaluation
-    raise NotImplementedError()
+    def generate_mu_array() -> np.ndarray:
+        values = np.linspace(-10, 10, 200)
+        combs = np.array(np.meshgrid(values, values)).T.reshape(-1,2)
+        gen_mu = lambda vals: vals[0] * np.array([1,0,0,0]) + vals[1] * np.array([0,0,1,0])
+        return values, np.array([gen_mu(comb) for comb in combs])
+    
+    values, mu_array = generate_mu_array()
+    log_likelihood_func = lambda x : MultivariateGaussian.log_likelihood(x, TRUE_COVARIANCE, samples)
+    log_likelihood = np.apply_along_axis(log_likelihood_func, 1, mu_array)
+    fig = go.Figure()
+    fig.add_trace(go.Heatmap(x=values, y=values, z=log_likelihood.reshape(200,200),
+                            colorbar=dict(title="Log Likelihood")))
+    fig.update_layout(title = "Log likelihood of samples with mean [f1, 0, f3, 0] Increses as It Approaches True Value of [0, 0, 4, 0]",
+                        xaxis_title="Value of f3",
+                        yaxis_title="Value of f1")
+    fig.show()    
+    
 
     # Question 6 - Maximum likelihood
-    raise NotImplementedError()
+    print("Maximizing Values:")
+    print("f1: %.3f" % mu_array[np.argmax(log_likelihood)][0])
+    print("f3: %.3f" % mu_array[np.argmax(log_likelihood)][2])
+    
 
 
 if __name__ == '__main__':
     np.random.seed(0)
     test_univariate_gaussian()
-    #test_multivariate_gaussian()
+    test_multivariate_gaussian()
