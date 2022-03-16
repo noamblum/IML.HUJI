@@ -160,7 +160,7 @@ class MultivariateGaussian:
         self.mu_ = np.average(X, axis=0) # 0 is axis of samples
         n_samples = X.shape[0]
         centered_samples = X - self.mu_
-        self.cov_ = (1 / (n_samples - 1)) * np.sum(np.outer(centered_samples, centered_samples))
+        self.cov_ = (1 / (n_samples - 1)) * (np.transpose(centered_samples) @ centered_samples)
         return self
 
     def pdf(self, X: np.ndarray):
@@ -202,7 +202,9 @@ class MultivariateGaussian:
             X2 (np.ndarray of shape (n_samples, n_features)): The second vector array
             cov (np.ndarray of shape (n_features, n_features)): The covariance matrix
         """
-        return np.diag(np.transpose(X1) * np.linalg.inv(cov) * X2)
+        cov_inv = np.linalg.inv(cov)
+        stage_1 = X1 @ cov_inv
+        return np.einsum('ij,ji->i', stage_1, np.transpose(X2))
 
     @staticmethod
     def log_likelihood(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> float:
