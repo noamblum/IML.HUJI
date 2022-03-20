@@ -188,7 +188,7 @@ class MultivariateGaussian:
         if X.shape[1] != dim:
             raise ValueError("Number of features must be equal to number of features fitted")
         
-        coefficient = 1 / (np.sqrt(np.power(2 * np.pi, dim) * np.linalg.det(self.cov_)))
+        coefficient = 1 / (np.sqrt(np.power(2 * np.pi, dim) * det(self.cov_)))
         centered_samples = X - self.mu_
         return coefficient * np.exp(-0.5 * MultivariateGaussian.mahalanobis_distance(centered_samples, centered_samples, self.cov_))
 
@@ -202,7 +202,7 @@ class MultivariateGaussian:
             X2 (np.ndarray of shape (n_samples, n_features)): The second vector array
             cov (np.ndarray of shape (n_features, n_features)): The covariance matrix
         """
-        cov_inv = np.linalg.inv(cov)
+        cov_inv = inv(cov)
         stage_1 = X1 @ cov_inv
         return np.einsum('ij,ji->i', stage_1, np.transpose(X2))
 
@@ -228,6 +228,7 @@ class MultivariateGaussian:
         dim = mu.shape[0]
         n_samples = X.shape[0]
 
-        coefficient = -0.5 * dim * n_samples * np.log(2 * np.pi) - 0.5 * n_samples * np.linalg.det(cov)
+        _, logdet_cov = slogdet(cov)
+        coefficient = -0.5 * dim * n_samples * np.log(2 * np.pi) - 0.5 * n_samples * logdet_cov
         centered_samples = X - mu
         return coefficient - 0.5 * np.sum(MultivariateGaussian.mahalanobis_distance(centered_samples, centered_samples, cov), axis = 0)
