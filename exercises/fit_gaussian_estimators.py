@@ -1,7 +1,6 @@
 from turtle import color
 from unicodedata import name
 
-from sklearn.covariance import log_likelihood
 from IMLearn.learners import UnivariateGaussian, MultivariateGaussian
 import numpy as np
 import plotly.graph_objects as go
@@ -74,15 +73,14 @@ def test_multivariate_gaussian():
     # Question 5 - Likelihood evaluation
     def generate_mu_array() -> np.ndarray:
         values = np.linspace(-10, 10, 200)
-        combs = np.array(np.meshgrid(values, values)).T.reshape(-1,2)
-        gen_mu = lambda vals: vals[0] * np.array([1,0,0,0]) + vals[1] * np.array([0,0,1,0])
-        return values, np.array([gen_mu(comb) for comb in combs])
+        combs = np.array(np.meshgrid(values, 0, values, 0)).T.reshape(-1,4)
+        return values, combs
     
     values, mu_array = generate_mu_array()
     log_likelihood_func = lambda x : MultivariateGaussian.log_likelihood(x, TRUE_COVARIANCE, samples)
     log_likelihood = np.apply_along_axis(log_likelihood_func, 1, mu_array)
     fig = go.Figure()
-    fig.add_trace(go.Heatmap(x=values, y=values, z=log_likelihood.reshape(200,200),
+    fig.add_trace(go.Heatmap(x=values, y=values, z=log_likelihood.reshape(200,200).T,
                             colorbar=dict(title="Log Likelihood")))
     fig.update_layout(title = "Log likelihood of samples with mean [f1, 0, f3, 0] Increses as It Approaches True Value of [0, 0, 4, 0]",
                         xaxis_title="Value of f3",
