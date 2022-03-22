@@ -57,9 +57,9 @@ class UnivariateGaussian:
         if len(X) == 1:
             self.var_ = 0
         elif not self.biased_: # Unbiased sample variance mean
-            self.var_ = np.sum(np.power(X - self.mu_ ,2)) / (len(X) - 1)
+            self.var_ = np.var(X, ddof=1)
         else: # Biased sample variance mean
-            self.var_ = np.mean(np.power(X - self.mu_,2))
+            self.var_ = np.var(X, ddof=0)
 
         self.fitted_ = True
         return self
@@ -158,9 +158,7 @@ class MultivariateGaussian:
         self.fitted_ = True
 
         self.mu_ = np.average(X, axis=0) # 0 is axis of samples
-        n_samples = X.shape[0]
-        centered_samples = X - self.mu_
-        self.cov_ = (1 / (n_samples - 1)) * (np.transpose(centered_samples) @ centered_samples)
+        self.cov_ = np.cov(X, ddof=1, rowvar=False)
         return self
 
     def pdf(self, X: np.ndarray):

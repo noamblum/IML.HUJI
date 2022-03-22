@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "Python: Ex1",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "program": "exercises/fit_gaussian_estimators.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "cwd": "${workspaceFolder}",
