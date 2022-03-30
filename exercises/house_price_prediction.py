@@ -7,6 +7,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 import plotly.io as pio
+import os
 pio.templates.default = "simple_white"
 
 
@@ -59,16 +60,30 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
     output_path: str (default ".")
         Path to folder in which plots are saved
     """
-    raise NotImplementedError()
+    sd_labels = np.std(y)
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+    for feature in X.columns:
+        covar = np.cov(X[feature], y)[0][1]
+        sd_feature = np.std(X[feature])
+        corr = covar/ (sd_feature * sd_labels)
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(x=X[feature], y=y, name= "Price", mode="markers")
+        )
+        fig.update_layout(title = f"Correlation between {feature} and house price: {corr}",
+                        yaxis_title="Price")
+        fig.write_image(os.path.join(output_path, f"{feature}.png"))
+
 
 
 if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of housing prices dataset
-    load_data('datasets/house_prices.csv')
+    features, labels = load_data('datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
-    # raise NotImplementedError()
+    feature_evaluation(features, labels, "figures/house_price")
 
     # # Question 3 - Split samples into training- and testing sets.
     # raise NotImplementedError()
