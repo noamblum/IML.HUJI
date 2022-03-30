@@ -23,7 +23,23 @@ def load_data(filename: str):
     Design matrix and response vector (prices) - either as a single
     DataFrame or a Tuple[DataFrame, Series]
     """
-    raise NotImplementedError()
+
+    df = pd.read_csv(filename)
+    df=df[df['date'].str.len() > 1]
+    df=df[df['price'] >= 0]
+
+    # No features related to date showed any correlation to the house price - not year renovated, not sale date.
+    # Lot sqft showed no correlation
+    # condition did not show any correlation, only grade
+    # lattitude is the geo-feature that showed the most correlation - probably means northern neighborhoods are more expansive
+
+    features = df[['bedrooms', 'bathrooms', 'sqft_living', 'floors', 'waterfront', 'view', 'grade',
+       'sqft_above', 'sqft_basement', 'sqft_living15', 'zip_short', 'lat']]
+    labels = df['price']
+
+    return features, labels
+    
+
 
 
 def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") -> NoReturn:
@@ -49,19 +65,19 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
 if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of housing prices dataset
-    raise NotImplementedError()
+    load_data('datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
-    raise NotImplementedError()
+    # raise NotImplementedError()
 
-    # Question 3 - Split samples into training- and testing sets.
-    raise NotImplementedError()
+    # # Question 3 - Split samples into training- and testing sets.
+    # raise NotImplementedError()
 
-    # Question 4 - Fit model over increasing percentages of the overall training data
-    # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
-    #   1) Sample p% of the overall training data
-    #   2) Fit linear model (including intercept) over sampled set
-    #   3) Test fitted model over test set
-    #   4) Store average and variance of loss over test set
-    # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
-    raise NotImplementedError()
+    # # Question 4 - Fit model over increasing percentages of the overall training data
+    # # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
+    # #   1) Sample p% of the overall training data
+    # #   2) Fit linear model (including intercept) over sampled set
+    # #   3) Test fitted model over test set
+    # #   4) Store average and variance of loss over test set
+    # # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
+    # raise NotImplementedError()
