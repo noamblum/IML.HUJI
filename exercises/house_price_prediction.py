@@ -35,7 +35,7 @@ def load_data(filename: str):
     # lattitude is the geo-feature that showed the most correlation - probably means northern neighborhoods are more expansive
 
     features = df[['bedrooms', 'bathrooms', 'sqft_living', 'floors', 'waterfront', 'view', 'grade',
-       'sqft_above', 'sqft_basement', 'sqft_living15', 'zip_short', 'lat']]
+       'sqft_above', 'sqft_basement', 'sqft_living15', 'lat']]
     labels = df['price']
 
     return features, labels
