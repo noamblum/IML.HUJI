@@ -18,7 +18,7 @@ class PolynomialFitting(LinearRegression):
         k : int
             Degree of polynomial to fit
         """
-        super().__init__()
+        super().__init__(False)
         self.__k = k
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
@@ -33,7 +33,7 @@ class PolynomialFitting(LinearRegression):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        super().fit(self.__transform(X), y)
+        super()._fit(self.__transform(X), y)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -49,7 +49,7 @@ class PolynomialFitting(LinearRegression):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        return super()._predict(X)
+        return super()._predict(self.__transform(X))
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
