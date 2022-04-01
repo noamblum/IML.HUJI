@@ -26,16 +26,13 @@ def load_data(filename: str):
     """
 
     df = pd.read_csv(filename)
-    df=df[df['date'].str.len() > 1]
-    df=df[df['price'] >= 0]
+    df.dropna(inplace=True)
+    df.drop(['long', 'date', 'lat'], axis=1, inplace=True)
+    df = pd.get_dummies(df, columns=['zipcode'])
+    df['last_work'] = df[['yr_built', 'yr_renovated']].max(axis=1)
+    df.drop(['yr_built', 'yr_renovated'], axis=1, inplace=True)
 
-    # No features related to date showed any correlation to the house price - not year renovated, not sale date.
-    # Lot sqft showed no correlation
-    # condition did not show any correlation, only grade
-    # lattitude is the geo-feature that showed the most correlation - probably means northern neighborhoods are more expansive
-
-    features = df[['bedrooms', 'bathrooms', 'sqft_living', 'floors', 'waterfront', 'view', 'grade',
-       'sqft_above', 'sqft_basement', 'sqft_living15', 'lat']]
+    features = df.drop(['price'], axis=1)
     labels = df['price']
 
     return features, labels
@@ -83,16 +80,41 @@ if __name__ == '__main__':
     features, labels = load_data('datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
-    feature_evaluation(features, labels, "figures/house_price")
+    # feature_evaluation(features, labels, "figures/house_price")
 
-    # # Question 3 - Split samples into training- and testing sets.
-    # raise NotImplementedError()
+    # Question 3 - Split samples into training- and testing sets.
+    train_features, train_labels, test_features, test_labels = split_train_test(features, labels, 0.75)
 
-    # # Question 4 - Fit model over increasing percentages of the overall training data
-    # # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
-    # #   1) Sample p% of the overall training data
-    # #   2) Fit linear model (including intercept) over sampled set
-    # #   3) Test fitted model over test set
-    # #   4) Store average and variance of loss over test set
-    # # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
-    # raise NotImplementedError()
+    # Question 4 - Fit model over increasing percentages of the overall training data
+    # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
+    #   1) Sample p% of the overall training data
+    #   2) Fit linear model (including intercept) over sampled set
+    #   3) Test fitted model over test set
+    #   4) Store average and variance of loss over test set
+    # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
+    percentaegs = np.arange(10, 101)
+    mean_loss = []
+    std_loss = []
+    for percentage in percentaegs:
+        loss = []
+        for _ in range(10):
+            train_features_p = train_features.sample(frac=percentage / 100)
+            train_labels_p = train_labels.loc[train_features_p.index]
+            model = LinearRegression()
+            model.fit(train_features_p.to_numpy(), train_labels_p.to_numpy())
+            loss.append(model.loss(test_features.to_numpy(), test_labels.to_numpy()))
+        loss = np.array(loss)
+        mean_loss.append(loss.mean())
+        std_loss.append(loss.std())
+    mean_loss = np.array(mean_loss)
+    std_loss = np.array(std_loss)
+
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=percentaegs, y=mean_loss, mode="markers+lines", name="Mean Loss", line=dict(dash="dash"), marker=dict(color="green", opacity=.7)))
+    fig.add_trace(go.Scatter(x=percentaegs, y=mean_loss-2*std_loss, fill=None, mode="lines", line=dict(color="lightgrey"), showlegend=False))
+    fig.add_trace(go.Scatter(x=percentaegs, y=mean_loss+2*std_loss, fill='tonexty', mode="lines", line=dict(color="lightgrey"), showlegend=False))
+    fig.update_layout(title = "Loss and variance decrease as more samples are trained on",
+                        xaxis_title="Percentage of Train Set",
+                        yaxis_title="MSE Loss")
+    fig.show()

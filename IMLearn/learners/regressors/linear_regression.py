@@ -34,6 +34,20 @@ class LinearRegression(BaseEstimator):
         super().__init__()
         self.include_intercept_, self.coefs_ = include_intercept, None
 
+    def __handle_intercept(self, X: np.ndarray) -> np.ndarray:
+        """Adds intercept column if needed
+
+        Args:
+            X (np.ndarray): Input array
+
+        Returns:
+            np.ndarray: Processed array 
+        """
+        if self.include_intercept_:
+            n_samples = X.shape[0]
+            X = np.hstack((np.ones(shape=(n_samples,1)), X))
+        return X
+
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
         Fit Least Squares model to given samples
@@ -50,10 +64,7 @@ class LinearRegression(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.include_intercept_`
         """
-        if self.include_intercept_:
-            n_samples = X.shape[0]
-            X = np.hstack((np.ones(shape=(n_samples,1)), X))
-        self.coefs_ = pinv(X) @ y
+        self.coefs_ = pinv(self.__handle_intercept(X)) @ y
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -69,7 +80,7 @@ class LinearRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        return X @ self.coefs_
+        return self.__handle_intercept(X) @ self.coefs_
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
