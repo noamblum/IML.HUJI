@@ -1,17 +1,22 @@
 from challenge.agoda_cancellation_estimator import AgodaCancellationEstimator
 from IMLearn.utils import split_train_test
-
+from data_cleaner import DataCleaner, TARGET_NAME
+from IMLearn import BaseEstimator
 import numpy as np
 import pandas as pd
+pd.options.mode.chained_assignment = None
 
 
-def load_data(filename: str):
+def load_data(filename: str, data_cleaner: DataCleaner, has_labels=True):
     """
     Load Agoda booking cancellation dataset
     Parameters
     ----------
     filename: str
         Path to house prices dataset
+
+    has_labels: bool
+        Specifies whether the loaded data is train or test data
 
     Returns
     -------
@@ -21,15 +26,15 @@ def load_data(filename: str):
     3) Tuple of ndarray of shape (n_samples, n_features) and ndarray of shape (n_samples,)
     """
     # TODO - replace below code with any desired preprocessing
-    full_data = pd.read_csv(filename).dropna().drop_duplicates()
-    features = full_data[["h_booking_id",
-                          "hotel_id",
-                          "accommadation_type_name",
-                          "hotel_star_rating",
-                          "customer_nationality"]]
-    labels = full_data["cancellation_datetime"]
+    full_data = pd.read_csv(filename)
+    clean_data = data_cleaner.run(full_data).df
 
-    return features, labels
+    if has_labels:
+        features = clean_data.drop(TARGET_NAME, axis=1)
+        labels = clean_data[TARGET_NAME]
+        return features, labels
+    return clean_data
+
 
 
 def evaluate_and_export(estimator: BaseEstimator, X: np.ndarray, filename: str):
@@ -57,12 +62,30 @@ def evaluate_and_export(estimator: BaseEstimator, X: np.ndarray, filename: str):
 if __name__ == '__main__':
     np.random.seed(0)
 
-    # Load data
-    df, cancellation_labels = load_data("../datasets/agoda_cancellation_train.csv")
-    train_X, train_y, test_X, test_y = split_train_test(df, cancellation_labels)
-
+    # Load tarining data
+    data_cleaner = DataCleaner()
+    df, cancellation_labels = load_data("datasets/agoda_cancellation_train.csv", data_cleaner)
+    
     # Fit model over data
-    estimator = AgodaCancellationEstimator().fit(train_X, train_y)
+    estimator = AgodaCancellationEstimator().fit(df, cancellation_labels)
 
-    # Store model predictions over test set
-    evaluate_and_export(estimator, test_X, "id1_id2_id3.csv")
+    test_set = load_data("datasets/test_set_week_1.csv", data_cleaner, has_labels=False)
+    evaluate_and_export(estimator, test_set, "challenge/316139922_207540782_318263035.csv")
+
+    # clean_data = pd.read_csv('clean_data.csv')
+    # df, cancellation_labels = clean_data.drop(TARGET_NAME, axis=1),clean_data[TARGET_NAME]
+    # l=[]
+    # for _ in range(10):
+    #     train_X, train_y, test_X, test_y = split_train_test(df, cancellation_labels, 0.8)
+
+    #     # Fit model over data
+    #     estimator = AgodaCancellationEstimator().fit(train_X, train_y)
+
+    #     # Store model predictions over test set
+    #     # evaluate_and_export(estimator, test_X, "id1_id2_id3.csv")
+    #     y = estimator.predict(test_X)
+    #     temp = pd.DataFrame({'id': test_X['h_booking_id'], 'pred': test_y})
+    #     test_y= temp.groupby('id', sort=False)['pred'].max().to_numpy()
+    #     print(np.mean(y==test_y))
+    #     l.append(np.mean(y==test_y))
+    # print(np.mean(l))

@@ -2,7 +2,9 @@ from __future__ import annotations
 from typing import NoReturn
 from IMLearn.base import BaseEstimator
 import numpy as np
-
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import metrics
 
 class AgodaCancellationEstimator(BaseEstimator):
     """
@@ -22,6 +24,7 @@ class AgodaCancellationEstimator(BaseEstimator):
 
         """
         super().__init__()
+        self.estimator = RandomForestClassifier(n_estimators=100)
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
@@ -39,7 +42,7 @@ class AgodaCancellationEstimator(BaseEstimator):
         -----
 
         """
-        pass
+        self.estimator.fit(X.drop(['h_booking_id'], axis=1), y)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -55,7 +58,9 @@ class AgodaCancellationEstimator(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        return np.zeros(X.shape[0])
+        pred = self.estimator.predict(X.drop(['h_booking_id'], axis=1))
+        df = pd.DataFrame({'id': X['h_booking_id'], 'pred': pred})
+        return df.groupby('id', sort=False)['pred'].max().to_numpy()
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -74,4 +79,4 @@ class AgodaCancellationEstimator(BaseEstimator):
         loss : float
             Performance under loss function
         """
-        pass
+        return metrics.zero_one_loss(y, self.predict(X))
