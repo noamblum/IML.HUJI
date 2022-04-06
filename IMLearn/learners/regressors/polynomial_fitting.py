@@ -1,11 +1,11 @@
 from __future__ import annotations
-import re
 from typing import NoReturn
+from IMLearn.base.base_estimator import BaseEstimator
 from . import LinearRegression
 import numpy as np
 
 
-class PolynomialFitting(LinearRegression):
+class PolynomialFitting(BaseEstimator):
     """
     Polynomial Fitting using Least Squares estimation
     """
@@ -18,8 +18,9 @@ class PolynomialFitting(LinearRegression):
         k : int
             Degree of polynomial to fit
         """
-        super().__init__(False)
+        super().__init__()
         self.__k = k
+        self.__lin_reg = LinearRegression(False)
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
@@ -33,7 +34,7 @@ class PolynomialFitting(LinearRegression):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        super()._fit(self.__transform(X), y)
+        self.__lin_reg.fit(self.__transform(X), y)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -49,7 +50,7 @@ class PolynomialFitting(LinearRegression):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        return super()._predict(self.__transform(X))
+        return self.__lin_reg.predict(self.__transform(X))
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -68,7 +69,7 @@ class PolynomialFitting(LinearRegression):
         loss : float
             Performance under MSE loss function
         """
-        return super()._loss(X,y)
+        return self.__lin_reg.loss(self.__transform(X), y)
 
     def __transform(self, X: np.ndarray) -> np.ndarray:
         """
