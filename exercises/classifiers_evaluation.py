@@ -4,6 +4,7 @@ from utils import *
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from math import atan2, pi
+import os
 
 
 def load_dataset(filename: str) -> Tuple[np.ndarray, np.ndarray]:
@@ -38,14 +39,25 @@ def run_perceptron():
     """
     for n, f in [("Linearly Separable", "linearly_separable.npy"), ("Linearly Inseparable", "linearly_inseparable.npy")]:
         # Load dataset
-        raise NotImplementedError()
+        X, y = load_dataset(os.path.join('datasets', f))
 
         # Fit Perceptron and record loss in each fit iteration
         losses = []
-        raise NotImplementedError()
+        def update_loss(p,s,r):
+            losses.append(p.loss(X,y))
+        perceptron = Perceptron(callback=update_loss)
+        perceptron.fit(X,y)
 
         # Plot figure of loss as function of fitting iteration
-        raise NotImplementedError()
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(x=np.arange(len(losses)), y=losses, name= "Loss Value",
+                line=dict(color='firebrick', width=2))
+        )
+        fig.update_layout(title = f"Loss as perceptron is updated - {n} case",
+                        xaxis_title="Amount of Updates",
+                        yaxis_title="Misclassification Error Loss")
+        fig.show()
 
 
 def get_ellipse(mu: np.ndarray, cov: np.ndarray):

@@ -78,23 +78,27 @@ class Perceptron(BaseEstimator):
         if self.include_intercept_:
             X = np.hstack((np.ones(shape=(n_samples,1)), X))
         self.coefs_ = np.zeros(X.shape[1])
+        self.fitted_ = True
 
         # Iteration
         for _ in range(self.max_iter_):
-            had_update = False
-            for i in range(n_samples):
-                if (y[i] * self.coefs_ @ X[i].T) <= 0:
-                    had_update = True
-                    self.coefs_ = self.coefs_ + y[i] * X[i]
+            preds = self.__sign(X @ self.coefs_.T)
+            misclassifications = (y * preds) <= 0
+            if np.any(misclassifications):
+                for i in np.where(misclassifications)[0]:
+                    self.coefs_ = self.coefs_ + (y[i] * X[i])
                     sample = X[i]
                     if self.include_intercept_:
                         sample = sample[1:]
-                    self.callback_(self, sample, self.__sign(self.coefs_ @ X[i].T))
-            if not had_update: break
+                    if self.callback_ is not None:
+                        self.callback_(self, sample, preds[i])
 
 
-    def __sign(a: np.ndarray) -> np.ndarray:
-        return np.sign(a, dtype=int) + (a == 0)
+    def __sign(self, a: np.ndarray) -> np.ndarray:
+        res = np.array(np.sign(a) + (a == 0), dtype=int)
+        if res.shape == (1,):
+            return res.item()
+        return res
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """

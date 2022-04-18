@@ -5,10 +5,52 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}",
+            "env": {"PYTHONPATH": "${workspaceFolder}/"}
+        },
+        {
             "name": "Python: Ex1",
             "type": "python",
             "request": "launch",
             "program": "exercises/fit_gaussian_estimators.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}",
+            "env": {"PYTHONPATH": "${workspaceFolder}/"}
+        },
+        {
+            "name": "Python: Ex2 - House Prices",
+            "type": "python",
+            "request": "launch",
+            "program": "exercises/house_price_prediction.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}",
+            "env": {"PYTHONPATH": "${workspaceFolder}/"}
+        }
+        ,
+        {
+            "name": "Python: Ex2 - Weather",
+            "type": "python",
+            "request": "launch",
+            "program": "exercises/city_temperature_prediction.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}",
+            "env": {"PYTHONPATH": "${workspaceFolder}/"}
+        }
+        ,
+        {
+            "name": "Python: Ex3",
+            "type": "python",
+            "request": "launch",
+            "program": "exercises/classifiers_evaluation.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "cwd": "${workspaceFolder}",

@@ -62,30 +62,40 @@ def evaluate_and_export(estimator: BaseEstimator, X: np.ndarray, filename: str):
 if __name__ == '__main__':
     np.random.seed(0)
 
-    # Load tarining data
-    data_cleaner = DataCleaner()
-    df, cancellation_labels = load_data("datasets/agoda_cancellation_train.csv", data_cleaner)
+    df = pd.read_csv("datasets/agoda_cancellation_train.csv")
+
+    # # Load tarining data
+    # data_cleaner = DataCleaner()
+    # df, cancellation_labels = load_data("datasets/agoda_cancellation_train.csv", data_cleaner)
     
-    # Fit model over data
-    estimator = AgodaCancellationEstimator().fit(df, cancellation_labels)
+    # # Fit model over data
+    # estimator = AgodaCancellationEstimator().fit(df, cancellation_labels)
 
-    test_set = load_data("datasets/test_set_week_1.csv", data_cleaner, has_labels=False)
-    evaluate_and_export(estimator, test_set, "challenge/316139922_207540782_318263035.csv")
+    # test_set = load_data("datasets/test_set_week_1.csv", data_cleaner, has_labels=False)
+    # evaluate_and_export(estimator, test_set, "challenge/316139922_207540782_318263035.csv")
 
-    # clean_data = pd.read_csv('clean_data.csv')
-    # df, cancellation_labels = clean_data.drop(TARGET_NAME, axis=1),clean_data[TARGET_NAME]
-    # l=[]
-    # for _ in range(10):
-    #     train_X, train_y, test_X, test_y = split_train_test(df, cancellation_labels, 0.8)
+    # # clean_data = pd.read_csv('clean_data.csv')
+    # # df, cancellation_labels = clean_data.drop(TARGET_NAME, axis=1),clean_data[TARGET_NAME]
+    l=[]
+    for _ in range(10):
+        dc = DataCleaner()
+        train_df, _, test_df, __ = split_train_test(df, df['cancellation_datetime'], 0.8)
 
-    #     # Fit model over data
-    #     estimator = AgodaCancellationEstimator().fit(train_X, train_y)
+        train_df = dc.run(train_df).df
+        test_df = dc.run(test_df.drop(['cancellation_datetime'], axis=1)).df
 
-    #     # Store model predictions over test set
-    #     # evaluate_and_export(estimator, test_X, "id1_id2_id3.csv")
-    #     y = estimator.predict(test_X)
-    #     temp = pd.DataFrame({'id': test_X['h_booking_id'], 'pred': test_y})
-    #     test_y= temp.groupby('id', sort=False)['pred'].max().to_numpy()
-    #     print(np.mean(y==test_y))
-    #     l.append(np.mean(y==test_y))
-    # print(np.mean(l))
+        train_X = train_df.drop(['cancellation_bin'], axis = 1)
+        train_y = train_df['cancellation_bin']
+        test_X = test_df.drop(['cancellation_bin'], axis = 1)
+        test_y = test_df['cancellation_bin']
+        # Fit model over data
+        estimator = AgodaCancellationEstimator().fit(train_X, train_y)
+
+        # Store model predictions over test set
+        # evaluate_and_export(estimator, test_X, "id1_id2_id3.csv")
+        y = estimator.predict(test_X)
+        temp = pd.DataFrame({'id': test_X['h_booking_id'], 'pred': test_y})
+        test_y= temp.groupby('id', sort=False)['pred'].max().to_numpy()
+        print(np.mean(y==test_y))
+        l.append(np.mean(y==test_y))
+    print(np.mean(l))
