@@ -58,7 +58,10 @@ class LDA(BaseEstimator):
         for i,k in enumerate(self.classes_):
             X_k = X[y == k]
             self.mu_[i] = np.mean(X_k, axis=0)
-            self.cov_ += np.cov(X_k, ddof=1, rowvar=False)
+            centered = X_k - self.mu_[i]
+            self.cov_ += centered.T @ centered
+
+        self.cov_ /= (n_samples - 1)
         self._cov_inv = inv(self.cov_)
 
 
@@ -96,13 +99,14 @@ class LDA(BaseEstimator):
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `likelihood` function")
         
-        coefficient = 1 / (np.sqrt(det(2 * np.pi * self.cov_)))
         n_classes = self.classes_.shape[0]
-        n_samples = X.shape[0]
         n_features = X.shape[1]
-        centered_samples = np.repeat(X,n_classes, axis = 0).reshape((n_samples,n_classes,n_features)) - self.mu_
-        p = np.einsum('ijk,ikj->ij', centered_samples @ self._cov_inv, np.transpose(centered_samples, (0,2,1)))
-        pdf = coefficient * np.exp(p)
+
+        coefficient = 1 / (np.sqrt(((2 * np.pi) ** n_features) * det(self.cov_)))
+        centered_samples = np.repeat(X[:, :, np.newaxis], n_classes, axis=2) - self.mu_.T
+
+        p = np.einsum('ijk,ljm->im', np.einsum('ijk,lj->ilk', centered_samples, self._cov_inv), centered_samples)
+        pdf = coefficient * np.exp(-0.5 * p)
         return pdf * self.pi_
 
 
