@@ -85,13 +85,13 @@ class Perceptron(BaseEstimator):
             preds = self.__sign(X @ self.coefs_.T)
             misclassifications = (y * preds) <= 0
             if np.any(misclassifications):
-                for i in np.where(misclassifications)[0]:
-                    self.coefs_ = self.coefs_ + (y[i] * X[i])
-                    sample = X[i]
-                    if self.include_intercept_:
-                        sample = sample[1:]
-                    if self.callback_ is not None:
-                        self.callback_(self, sample, preds[i])
+                update_ind = np.where(misclassifications)[0][-1]
+                self.coefs_ = self.coefs_ + (y[update_ind] * X[update_ind])
+                sample = X[update_ind]
+                if self.include_intercept_:
+                    sample = sample[1:]
+                if self.callback_ is not None:
+                    self.callback_(self, sample, preds[update_ind])
 
 
     def __sign(self, a: np.ndarray) -> np.ndarray:
