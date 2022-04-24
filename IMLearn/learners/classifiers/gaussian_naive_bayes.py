@@ -43,7 +43,7 @@ class GaussianNaiveBayes(BaseEstimator):
         self.classes_, self.pi_ = np.unique(y, return_counts=True)
         self.pi_ = self.pi_ / n_samples
         n_classes = self.classes_.shape[0]
-        n_features = X.shape[1]
+        n_features = X.shape[1] if len(X.shape) == 2 else 1
 
         self.mu_ = np.empty((n_classes, n_features))
         self.vars_ = np.empty((n_classes, n_features))
