@@ -93,8 +93,8 @@ class GaussianNaiveBayes(BaseEstimator):
         n_samples = X.shape[0]
         n_features = X.shape[1]
         centered_samples = np.repeat(X,n_classes, axis = 0).reshape((n_samples,n_classes,n_features)) - self.mu_
-        pdf_per_feature = coefficients * np.exp((centered_samples ** 2) / (-2 * self.vars_))
-        return np.prod(pdf_per_feature, axis=2)
+        pdf_per_feature = np.log(coefficients) + ((centered_samples ** 2) / (-2 * self.vars_))
+        return np.sum(pdf_per_feature, axis=2)
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """

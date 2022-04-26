@@ -105,9 +105,8 @@ class LDA(BaseEstimator):
         coefficient = 1 / (np.sqrt(((2 * np.pi) ** n_features) * det(self.cov_)))
         centered_samples = np.repeat(X[:, :, np.newaxis], n_classes, axis=2) - self.mu_.T
 
-        p = np.einsum('ijk,ljm->im', np.einsum('ijk,lj->ilk', centered_samples, self._cov_inv), centered_samples)
-        pdf = coefficient * np.exp(-0.5 * p)
-        return pdf * self.pi_
+        prod = np.einsum('ijk,ljm->im', np.einsum('ijk,lj->ilk', centered_samples, self._cov_inv), centered_samples)
+        return np.log(self.pi_) + np.log(coefficient) - (0.5 * prod)
 
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
