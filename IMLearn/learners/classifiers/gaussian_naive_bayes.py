@@ -50,7 +50,7 @@ class GaussianNaiveBayes(BaseEstimator):
         for i,k in enumerate(self.classes_):
             X_k = X[y == k]
             self.mu_[i] = np.mean(X_k, axis=0)
-            self.vars_[i] = np.var(X, ddof=1, axis=0)
+            self.vars_[i] = np.var(X_k, ddof=1, axis=0)
 
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
