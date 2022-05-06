@@ -3,6 +3,7 @@ from typing import Tuple, NoReturn
 from ...base import BaseEstimator
 import numpy as np
 from itertools import product
+from ...metrics.loss_functions import misclassification_error
 
 
 class DecisionStump(BaseEstimator):
@@ -95,7 +96,20 @@ class DecisionStump(BaseEstimator):
         For every tested threshold, values strictly below threshold are predicted as `-sign` whereas values
         which equal to or above the threshold are predicted as `sign`
         """
-        raise NotImplementedError()
+        n_samples = values.shape[0]
+        sorted_labels = labels[values.argsort()]
+        sorted_values = values.sort()
+        min_loss = np.Infinity
+        for i in range(n_samples + 1):
+            lower_labels = np.ones(i, dtype=int) * (-sign)
+            higher_labels = np.ones(n_samples - i, dtype=int) * (sign)
+            cur_loss = misclassification_error(sorted_labels, np.concatenate([lower_labels, higher_labels]))
+            if cur_loss < min_loss:
+                min_loss = cur_loss
+                min_loss_ind = i
+        thr = sorted_values[min_loss_ind] if min_loss_ind < n_samples else sorted_values[-1] + 1 # The +1 is to set the threshold above all samples
+        return thr, min_loss
+        
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -114,4 +128,4 @@ class DecisionStump(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        raise NotImplementedError()
+        return misclassification_error(y, self._predict(X))
