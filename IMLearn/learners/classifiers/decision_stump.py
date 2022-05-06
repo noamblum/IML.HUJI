@@ -40,7 +40,25 @@ class DecisionStump(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        raise NotImplementedError()
+        
+        def gen_threshold_vector(values: np.ndarray) -> np.ndarray:
+            """Generates a vector containing the best threshold, best loss, and best sign
+
+            Args:
+                values (ndarray of shape (n_samples, )): The feature vector
+
+            Returns:
+                np.ndarray: A vector as follwing: [thr, err, sign]
+            """
+            res = np.array([self._find_threshold(values, y, -1) ,self._find_threshold(values, y, 1)])
+            minimizer = np.argmin(res, axis=0)[1]
+            return np.array([res[minimizer, 0], res[minimizer, 1], minimizer * 2 - 1])
+
+        possible_thresholds = np.apply_along_axis(gen_threshold_vector, 1, X)
+        self.j_ = np.argmin(possible_thresholds, axis=0)[1]
+        self.threshold_ = possible_thresholds[self.j_, 0]
+        self.sign_ = possible_thresholds[self.j_, 0]
+
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -64,7 +82,9 @@ class DecisionStump(BaseEstimator):
         Feature values strictly below threshold are predicted as `-sign` whereas values which equal
         to or above the threshold are predicted as `sign`
         """
-        raise NotImplementedError()
+        cutoff = (X[:, self.j_] >= self.threshold_).astype(int)
+        cutoff = cutoff * 2 - 1
+        return cutoff * self.sign_
 
     def _find_threshold(self, values: np.ndarray, labels: np.ndarray, sign: int) -> Tuple[float, float]:
         """
