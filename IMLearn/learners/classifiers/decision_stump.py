@@ -117,13 +117,16 @@ class DecisionStump(BaseEstimator):
         which equal to or above the threshold are predicted as `sign`
         """
         n_samples = values.shape[0]
-        sorted_labels = labels[values.argsort()]
+        sorted_labels = labels[values.argsort()], dtype=int
+        d = np.abs(sorted_labels)
+        sorted_labels = np.sign(sorted_labels, dtype=int)
         sorted_values = values.sort()
         min_loss = np.Infinity
         for i in range(n_samples + 1):
             lower_labels = np.ones(i, dtype=int) * (-sign)
             higher_labels = np.ones(n_samples - i, dtype=int) * (sign)
-            cur_loss = misclassification_error(sorted_labels, np.concatenate([lower_labels, higher_labels]))
+            l = np.concatenate([lower_labels, higher_labels])
+            cur_loss = np.sum((sorted_labels == l) * d) / n_samples
             if cur_loss < min_loss:
                 min_loss = cur_loss
                 min_loss_ind = i
@@ -148,4 +151,4 @@ class DecisionStump(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        return misclassification_error(y, self._predict(X))
+        return np.sum((self._predict(X) == np.sign(y)) * y) / y.shape[0]
