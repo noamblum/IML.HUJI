@@ -56,5 +56,16 @@
             "cwd": "${workspaceFolder}",
             "env": {"PYTHONPATH": "${workspaceFolder}/"}
         }
+        ,
+        {
+            "name": "Python: Ex4",
+            "type": "python",
+            "request": "launch",
+            "program": "exercises/adaboost_scenario.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}",
+            "env": {"PYTHONPATH": "${workspaceFolder}/"}
+        }
     ]
 }

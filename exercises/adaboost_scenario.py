@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Tuple
-from IMLearn.learners.metalearners.adaboost import AdaBoost
+from IMLearn.metalearners.adaboost import AdaBoost
 from IMLearn.learners.classifiers import DecisionStump
 from utils import *
 import plotly.graph_objects as go
@@ -42,7 +42,24 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
     (train_X, train_y), (test_X, test_y) = generate_data(train_size, noise), generate_data(test_size, noise)
 
     # Question 1: Train- and test errors of AdaBoost in noiseless case
-    raise NotImplementedError()
+    def wl():
+        return DecisionStump()
+    ab = AdaBoost(wl, n_learners)
+    ab.fit(train_X, train_y)
+
+    train_loss = []
+    test_loss = []
+    x_axis = np.arange(1, n_learners + 1)
+    for t in x_axis:
+        train_loss.append(ab.partial_loss(train_X, train_y, t))
+        test_loss.append(ab.partial_loss(test_X, test_y, t))
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=x_axis, y=train_loss, line=dict(color='firebrick', width=2), name="Train Loss"))
+    fig.add_trace(go.Scatter(x=x_axis, y=test_loss, line=dict(color='royalblue', width=2), name="Test Loss"))
+    fig.update_layout(title = "Train and Test Set Loss by Number of Weak Learners",
+                        xaxis_title="# Weak Learners",
+                        yaxis_title="Misclassification Error Loss")
+    fig.show()
 
     # Question 2: Plotting decision surfaces
     T = [5, 50, 100, 250]
@@ -58,4 +75,4 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
 
 if __name__ == '__main__':
     np.random.seed(0)
-    raise NotImplementedError()
+    fit_and_evaluate_adaboost(0)
