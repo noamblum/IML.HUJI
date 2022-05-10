@@ -2,6 +2,7 @@ import numpy as np
 from typing import Tuple
 from IMLearn.metalearners.adaboost import AdaBoost
 from IMLearn.learners.classifiers import DecisionStump
+from IMLearn.metrics.loss_functions import accuracy
 from utils import *
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -57,7 +58,7 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=x_axis, y=train_loss, line=dict(color='firebrick', width=2), name="Train Loss"))
     fig.add_trace(go.Scatter(x=x_axis, y=test_loss, line=dict(color='royalblue', width=2), name="Test Loss"))
-    fig.update_layout(title = "Train and Test Set Loss by Number of Weak Learners",
+    fig.update_layout(title = f"Train and Test Set Loss by Number of Weak Learners - Noise Factor {noise}",
                         xaxis_title="# Weak Learners",
                         yaxis_title="Misclassification Error Loss")
     fig.show()
@@ -76,18 +77,40 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
                                            line=dict(color="black", width=1)) )], 
                    rows=(i//2) + 1, cols=(i%2)+1)
 
-    fig.update_layout(title="Decision boundaries for different amounts of weak learners", margin=dict(t=100))\
+    fig.update_layout(title=f"Decision boundaries for different amounts of weak learners  - Noise Factor {noise}", margin=dict(t=100))\
     .update_xaxes(visible=False). update_yaxes(visible=False)
 
     fig.show()
 
     # Question 3: Decision surface of best performing ensemble
-    raise NotImplementedError()
+    best_t = np.argmin(test_loss) + 1
+    p = lambda X: ab.partial_predict(X, best_t)
+    test_pred = ab.partial_predict(test_X, best_t)
+    fig = go.Figure()
+    fig.add_traces([decision_surface(p, lims[0], lims[1], showscale=False),
+                    go.Scatter(x=test_X[:,0], y=test_X[:,1], mode="markers", showlegend=False,
+                               marker=dict(color=test_y.astype(int), symbol=symbols[test_y.astype(int)], colorscale=[custom[0], custom[-1]], 
+                                           line=dict(color="black", width=1)) )])
+    acc = accuracy(test_y, test_pred)
+    fig.update_layout(title=f"Decision Boundaries for Ensamble Size {best_t} - Noise Factor {noise}. Accuracy: {acc}", margin=dict(t=100))\
+        .update_xaxes(visible=False). update_yaxes(visible=False)
+    
+    fig.show()
 
     # Question 4: Decision surface with weighted samples
-    raise NotImplementedError()
+    size_factor = (ab.D_ / np.max(ab.D_)) * 5
+    fig = go.Figure()
+    fig.add_traces([decision_surface(ab.predict, lims[0], lims[1], showscale=False),
+                    go.Scatter(x=train_X[:,0], y=train_X[:,1], mode="markers", showlegend=False,
+                        marker=dict(size = size_factor, color=train_y.astype(int), symbol=symbols[train_y.astype(int)], colorscale=[custom[0], custom[-1]], 
+                        line=dict(color="black", width=1)) )])
+    fig.update_layout(title=f"Train Set Samples by Their Weight in the Distribution - Noise Factor {noise}.", margin=dict(t=100))\
+        .update_xaxes(visible=False). update_yaxes(visible=False)
+    
+    fig.show()
 
 
 if __name__ == '__main__':
     np.random.seed(0)
     fit_and_evaluate_adaboost(0)
+    fit_and_evaluate_adaboost(0.4)
