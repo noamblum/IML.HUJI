@@ -57,7 +57,6 @@ class AdaBoost(BaseEstimator):
             self.models_.append(self.wl_())
             self.models_[i].fit(X, y * self.D_)
             epsilon = self.models_[i].loss(X, y * self.D_)
-            # q = (1/epsilon)
             self.weights_.append(0.5*np.log((1/epsilon) - 1))
             self.D_ = self.D_ * np.exp((-y) * self.weights_[i] * self.models_[i].predict(X))
             self.D_ = self.D_ / np.sum(self.D_)
@@ -115,10 +114,9 @@ class AdaBoost(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        pred = np.zeros(X.shape[0])
-        for i in range(T):
-            pred += self.models_[i].predict(X) * self.weights_[i]
-        return np.sign(pred).astype(int)
+        preds = np.array([self.models_[i].predict(X) for i in range(T)]).T
+        w = self.weights_[np.arange(T)]
+        return np.sign(preds @ w).astype(int)
 
     def partial_loss(self, X: np.ndarray, y: np.ndarray, T: int) -> float:
         """
