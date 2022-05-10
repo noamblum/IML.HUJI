@@ -54,10 +54,10 @@ class DecisionStump(BaseEstimator):
             minimizer = np.argmin(res, axis=0)[1]
             return np.array([res[minimizer, 0], res[minimizer, 1], minimizer * 2 - 1])
 
-        possible_thresholds = np.apply_along_axis(gen_threshold_vector, 1, X)
-        self.j_ = np.argmin(possible_thresholds, axis=0)[1]
-        self.threshold_ = possible_thresholds[self.j_, 0]
-        self.sign_ = possible_thresholds[self.j_, 0]
+        possible_thresholds = np.apply_along_axis(gen_threshold_vector, 0, X)
+        self.j_ = np.argmin(possible_thresholds, axis=1)[1]
+        self.threshold_ = possible_thresholds[0, self.j_]
+        self.sign_ = possible_thresholds[2, self.j_]
 
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
@@ -117,20 +117,20 @@ class DecisionStump(BaseEstimator):
         which equal to or above the threshold are predicted as `sign`
         """
         n_samples = values.shape[0]
-        sorted_labels = labels[values.argsort()], dtype=int
+        sorted_labels = labels[values.argsort()]
         d = np.abs(sorted_labels)
-        sorted_labels = np.sign(sorted_labels, dtype=int)
-        sorted_values = values.sort()
+        sorted_labels = np.sign(sorted_labels).astype(int)
+        sorted_values = values.copy()
+        sorted_values.sort()
         min_loss = np.Infinity
-        for i in range(n_samples + 1):
-            lower_labels = np.ones(i, dtype=int) * (-sign)
-            higher_labels = np.ones(n_samples - i, dtype=int) * (sign)
-            l = np.concatenate([lower_labels, higher_labels])
-            cur_loss = np.sum((sorted_labels == l) * d) / n_samples
+        l = np.ones(n_samples, dtype=int) * (sign)
+        for i in range(1, n_samples):
+            l[i - 1] = -sign
+            cur_loss = self.__weighted_misclassification(sorted_labels, l, d)
             if cur_loss < min_loss:
                 min_loss = cur_loss
                 min_loss_ind = i
-        thr = sorted_values[min_loss_ind] if min_loss_ind < n_samples else sorted_values[-1] + 1 # The +1 is to set the threshold above all samples
+        thr = sorted_values[min_loss_ind]
         return thr, min_loss
         
 
@@ -151,4 +151,20 @@ class DecisionStump(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        return np.sum((self._predict(X) == np.sign(y)) * y) / y.shape[0]
+        return self.__weighted_misclassification(np.sign(y), self._predict(X), np.abs(y))
+    
+    
+    def __weighted_misclassification(self, y_true: np.ndarray, y_pred: np.ndarray , w: np.ndarray) -> float:
+        """A weighted misclassification error function
+
+        Args:
+            y_true (np.ndarray of shape (n_samples, )): The true classes
+            y_pred (np.ndarray of shape (n_samples, )): The predicted classes
+            w (np.ndarray of shape (n_samples, )): The weights vector
+
+        Returns:
+            float: The weighted misclassification error
+        """
+        indicator = (y_pred != y_true).astype(int)
+        return np.sum(indicator * w) / np.sum(w)
+

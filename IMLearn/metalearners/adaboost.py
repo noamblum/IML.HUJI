@@ -1,7 +1,7 @@
 import numpy as np
-from base import BaseEstimator
+from IMLearn.base import BaseEstimator
 from typing import Callable, List, NoReturn
-from metrics.loss_functions import misclassification_error
+from IMLearn.metrics.loss_functions import misclassification_error
 
 
 class AdaBoost(BaseEstimator):
@@ -50,6 +50,7 @@ class AdaBoost(BaseEstimator):
             Responses of input data to fit to
         """
         n_samples = X.shape[0]
+        self.D_ = np.ones(n_samples)
         self.D_ = np.ones(n_samples) / n_samples
         self.models_: List[BaseEstimator] = []
         self.weights_ = []
@@ -57,6 +58,7 @@ class AdaBoost(BaseEstimator):
             self.models_.append(self.wl_())
             self.models_[i].fit(X, y * self.D_)
             epsilon = self.models_[i].loss(X, y * self.D_)
+            # q = (1/epsilon)
             self.weights_.append(0.5*np.log((1/epsilon) - 1))
             self.D_ = self.D_ * np.exp((-y) * self.weights_[i] * self.models_[i].predict(X))
             self.D_ = self.D_ / np.sum(self.D_)
@@ -114,10 +116,10 @@ class AdaBoost(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        def pred_from_ind(i):
-            return self.models_[i].predict(X)
-        preds = np.fromfunction(pred_from_ind, shape=(T, X.shape[0]))
-        return np.sign(np.sum(self.weights_ * preds, axis = 0), dtype=int)
+        pred = np.zeros(X.shape[0])
+        for i in range(T):
+            pred += self.models_[i].predict(X) * self.weights_[i]
+        return np.sign(pred).astype(int)
 
     def partial_loss(self, X: np.ndarray, y: np.ndarray, T: int) -> float:
         """
