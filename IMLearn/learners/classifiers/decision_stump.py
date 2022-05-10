@@ -122,15 +122,21 @@ class DecisionStump(BaseEstimator):
         sorted_labels = np.sign(sorted_labels).astype(int)
         sorted_values = values.copy()
         sorted_values.sort()
-        min_loss = np.Infinity
+        min_loss = np.inf
         l = np.ones(n_samples, dtype=int) * (sign)
-        for i in range(1, n_samples):
-            l[i - 1] = -sign
+        for i in range(n_samples + 1):
+            if i > 0:
+                l[i - 1] = -sign
             cur_loss = self.__weighted_misclassification(sorted_labels, l, d)
             if cur_loss < min_loss:
                 min_loss = cur_loss
                 min_loss_ind = i
-        thr = sorted_values[min_loss_ind]
+        if min_loss_ind == 0:
+            thr = -np.inf
+        elif min_loss_ind == n_samples:
+            thr = np.inf
+        else:
+            thr = sorted_values[min_loss_ind]
         return thr, min_loss
         
 

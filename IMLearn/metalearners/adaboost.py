@@ -50,7 +50,6 @@ class AdaBoost(BaseEstimator):
             Responses of input data to fit to
         """
         n_samples = X.shape[0]
-        self.D_ = np.ones(n_samples)
         self.D_ = np.ones(n_samples) / n_samples
         self.models_: List[BaseEstimator] = []
         self.weights_ = []
