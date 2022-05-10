@@ -116,28 +116,21 @@ class DecisionStump(BaseEstimator):
         For every tested threshold, values strictly below threshold are predicted as `-sign` whereas values
         which equal to or above the threshold are predicted as `sign`
         """
-        n_samples = values.shape[0]
-        sorted_labels = labels[values.argsort()]
+        sort_permutation = values.argsort()
+        sorted_labels = labels[sort_permutation]
         d = np.abs(sorted_labels)
-        sorted_labels = np.sign(sorted_labels).astype(int)
-        sorted_values = values.copy()
-        sorted_values.sort()
-        min_loss = np.inf
-        l = np.ones(n_samples, dtype=int) * (sign)
-        for i in range(n_samples + 1):
-            if i > 0:
-                l[i - 1] = -sign
-            cur_loss = self.__weighted_misclassification(sorted_labels, l, d)
-            if cur_loss < min_loss:
-                min_loss = cur_loss
-                min_loss_ind = i
+        sorted_values = values[sort_permutation]
+        loss_below_threshold = np.cumsum((sorted_labels * sign >= 0) * d)
+        loss_below_threshold = np.roll(loss_below_threshold, 1)
+        loss_below_threshold[0] = 0
+        loss_above_threshold = np.cumsum(((sorted_labels * sign < 0) * d)[::-1])[::-1]
+        loss = loss_below_threshold + loss_above_threshold
+        min_loss_ind = np.argmin(loss)
         if min_loss_ind == 0:
-            thr = -np.inf
-        elif min_loss_ind == n_samples:
-            thr = np.inf
+            thr = np.inf * sign
         else:
             thr = sorted_values[min_loss_ind]
-        return thr, min_loss
+        return thr, loss[min_loss_ind]
         
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
