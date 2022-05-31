@@ -27,7 +27,25 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
     """
     # Question 1 - Generate dataset for model f(x)=(x+3)(x+2)(x+1)(x-1)(x-2) + eps for eps Gaussian noise
     # and split into training- and testing portions
-    raise NotImplementedError()
+    f_true = lambda x: (x+3)*(x+2)*(x+1)*(x-1)*(x-2)
+    def epsilon(x):
+        if type(x) == np.number:
+            return np.random.normal(0, noise)
+        return np.random.normal(0, noise, x.shape)
+    f = lambda x: (f_true(x) + epsilon(x))
+    X = pd.DataFrame({"x": np.random.uniform(-1.2, 2, n_samples)})
+    y = f(X)["x"]
+    y.name = "y"
+    train_X, train_y, test_X, test_y = split_train_test(X, y, train_proportion=(2/3))
+    fig = go.Figure()
+    sorted_x = X["x"].sort_values()
+    fig.add_traces([
+        go.Scatter(x=sorted_x, y=f_true(sorted_x), name="True values", line=dict(color='black', width=1.5)),
+        go.Scatter(x=train_X, y=train_y, name="Train set", mode='markers', marker=dict(color='royalblue', symbol="x")),
+        go.Scatter(x=test_X, y=test_y, name="Test set", mode='markers', marker=dict(color='firebrick', symbol="circle")),
+    ])
+    fig.update_layout(title=f"Train and Test Sets Compared to True Model. Noise: {noise}", xaxis_title="x", yaxis_title="y")
+    fig.show()
 
     # Question 2 - Perform CV for polynomial fitting with degrees 0,1,...,10
     raise NotImplementedError()
@@ -61,4 +79,4 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
 
 if __name__ == '__main__':
     np.random.seed(0)
-    raise NotImplementedError()
+    select_polynomial_degree()
