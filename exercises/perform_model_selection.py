@@ -44,11 +44,21 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
         go.Scatter(x=train_X, y=train_y, name="Train set", mode='markers', marker=dict(color='royalblue', symbol="x")),
         go.Scatter(x=test_X, y=test_y, name="Test set", mode='markers', marker=dict(color='firebrick', symbol="circle")),
     ])
-    fig.update_layout(title=f"Train and Test Sets Compared to True Model. Noise: {noise}", xaxis_title="x", yaxis_title="y")
+    fig.update_layout(title=f"Train and test sets compared to true Model. Noise: {noise}", xaxis_title="x", yaxis_title="y")
     fig.show()
 
     # Question 2 - Perform CV for polynomial fitting with degrees 0,1,...,10
-    raise NotImplementedError()
+    loss_by_degree = []
+    for deg in range(11):
+        estimator = PolynomialFitting(deg)
+        loss_by_degree.append(cross_validate(estimator, train_X, train_y, mean_square_error, 5))
+
+    fig = go.Figure()
+    fig.add_traces([
+        go.Scatter(x=np.arange(11), y=loss_by_degree, showlegend=False, mode='markers', marker=dict(color='royalblue', symbol="x")),
+    ])
+    fig.update_layout(title=f"Calculated loss from 5-fold cross validation on train set.", xaxis_title="Polynomial degree", yaxis_title="Loss")
+    fig.show()
 
     # Question 3 - Using best value of k, fit a k-degree polynomial model and report test error
     raise NotImplementedError()
