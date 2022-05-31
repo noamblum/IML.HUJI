@@ -48,14 +48,18 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
     fig.show()
 
     # Question 2 - Perform CV for polynomial fitting with degrees 0,1,...,10
-    loss_by_degree = []
+    loss_by_degree_train = []
+    loss_by_degree_validation = []
     for deg in range(11):
         estimator = PolynomialFitting(deg)
-        loss_by_degree.append(cross_validate(estimator, train_X, train_y, mean_square_error, 5))
+        t, v = cross_validate(estimator, train_X, train_y, mean_square_error, 5)
+        loss_by_degree_train.append(t)
+        loss_by_degree_validation.append(v)
 
     fig = go.Figure()
     fig.add_traces([
-        go.Scatter(x=np.arange(11), y=loss_by_degree, showlegend=False, mode='markers', marker=dict(color='royalblue', symbol="x")),
+        go.Scatter(x=np.arange(11), y=loss_by_degree_train, name="Train error", mode='lines+markers', marker=dict(color='royalblue', symbol="x"), line=dict(color='black', width=1.5)),
+        go.Scatter(x=np.arange(11), y=loss_by_degree_validation, name="Validation error", mode='lines+markers', marker=dict(color='firebrick', symbol="circle"), line=dict(color='black', width=1.5))
     ])
     fig.update_layout(title=f"Calculated loss from 5-fold cross validation on train set.", xaxis_title="Polynomial degree", yaxis_title="Loss")
     fig.show()

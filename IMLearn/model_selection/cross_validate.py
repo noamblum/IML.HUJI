@@ -41,12 +41,14 @@ def cross_validate(estimator: BaseEstimator, X: np.ndarray, y: np.ndarray,
     groups = np.tile(np.arange(cv), (n_samples // cv) + 1)
     groups = groups[:n_samples]
     
-    errors = []
+    train_errors = []
+    validation_errors = []
     for i in range(cv):
         train_X = X[groups != i]
         train_y = y[groups != i]
         test_X = X[groups == i]
         test_y = y[groups == i]
         estimator.fit(train_X, train_y)
-        errors.append(scoring(test_y, estimator.predict(test_X)))
-    return np.mean(errors)
+        train_errors.append(scoring(train_y, estimator.predict(train_X)))
+        validation_errors.append(scoring(test_y, estimator.predict(test_X)))
+    return np.mean(train_errors), np.mean(validation_errors)
