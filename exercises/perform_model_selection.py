@@ -88,10 +88,31 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
         Number of regularization parameter values to evaluate for each of the algorithms
     """
     # Question 6 - Load diabetes dataset and split into training and testing portions
-    raise NotImplementedError()
+    X, y = datasets.load_diabetes(return_X_y=True)
+    train_X = X[:n_samples]
+    test_X = X[n_samples:]
+    train_y = y[:n_samples]
+    test_y = y[n_samples:]
 
     # Question 7 - Perform CV for different values of the regularization parameter for Ridge and Lasso regressions
-    raise NotImplementedError()
+    lambdas = np.linspace(0.01, 2.5, n_evaluations)
+
+    for name, model in zip(["ridge", "lasso"], [RidgeRegression, Lasso]):
+        loss_by_lambda_train = []
+        loss_by_lambda_validation = []
+        for lam in lambdas:
+            estimator = model(lam)
+            t, v = cross_validate(estimator, train_X, train_y, mean_square_error, 5)
+            loss_by_lambda_train.append(t)
+            loss_by_lambda_validation.append(v)
+
+        fig = go.Figure()
+        fig.add_traces([
+            go.Scatter(x=lambdas, y=loss_by_lambda_train, name="Train error", mode='lines+markers', marker=dict(color='royalblue', symbol="x"), line=dict(color='royalblue', width=1.5)),
+            go.Scatter(x=lambdas, y=loss_by_lambda_validation, name="Validation error", mode='lines+markers', marker=dict(color='firebrick', symbol="circle"), line=dict(color='firebrick', width=1.5))
+        ])
+        fig.update_layout(title=f"Loss from 5-fold cross validation on {name} regression model", xaxis_title="Lambda", yaxis_title="Loss")
+        fig.show()
 
     # Question 8 - Compare best Ridge model, best Lasso model and Least Squares model
     raise NotImplementedError()
@@ -99,6 +120,7 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
 
 if __name__ == '__main__':
     np.random.seed(0)
-    select_polynomial_degree()
-    select_polynomial_degree(100, 0)
-    select_polynomial_degree(1500, 10)
+    # select_polynomial_degree()
+    # select_polynomial_degree(100, 0)
+    # select_polynomial_degree(1500, 10)
+    select_regularization_parameter()
