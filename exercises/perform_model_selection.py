@@ -44,28 +44,34 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
         go.Scatter(x=train_X, y=train_y, name="Train set", mode='markers', marker=dict(color='royalblue', symbol="x")),
         go.Scatter(x=test_X, y=test_y, name="Test set", mode='markers', marker=dict(color='firebrick', symbol="circle")),
     ])
-    fig.update_layout(title=f"Train and test sets compared to true Model. Noise: {noise}", xaxis_title="x", yaxis_title="y")
+    fig.update_layout(title=f"Train and test sets compared to true Model. {n_samples} samples with noise {noise}", xaxis_title="x", yaxis_title="y")
     fig.show()
 
     # Question 2 - Perform CV for polynomial fitting with degrees 0,1,...,10
     loss_by_degree_train = []
     loss_by_degree_validation = []
-    for deg in range(11):
-        estimator = PolynomialFitting(deg)
+    for k in range(11):
+        estimator = PolynomialFitting(k)
         t, v = cross_validate(estimator, train_X, train_y, mean_square_error, 5)
         loss_by_degree_train.append(t)
         loss_by_degree_validation.append(v)
 
     fig = go.Figure()
     fig.add_traces([
-        go.Scatter(x=np.arange(11), y=loss_by_degree_train, name="Train error", mode='lines+markers', marker=dict(color='royalblue', symbol="x"), line=dict(color='black', width=1.5)),
-        go.Scatter(x=np.arange(11), y=loss_by_degree_validation, name="Validation error", mode='lines+markers', marker=dict(color='firebrick', symbol="circle"), line=dict(color='black', width=1.5))
+        go.Scatter(x=np.arange(11), y=loss_by_degree_train, name="Train error", mode='lines+markers', marker=dict(color='royalblue', symbol="x"), line=dict(color='royalblue', width=1.5)),
+        go.Scatter(x=np.arange(11), y=loss_by_degree_validation, name="Validation error", mode='lines+markers', marker=dict(color='firebrick', symbol="circle"), line=dict(color='firebrick', width=1.5))
     ])
-    fig.update_layout(title=f"Calculated loss from 5-fold cross validation on train set.", xaxis_title="Polynomial degree", yaxis_title="Loss")
+    fig.update_layout(title=f"Calculated loss from 5-fold cross validation on train set.  {n_samples} samples with noise {noise}", xaxis_title="Polynomial degree", yaxis_title="Loss")
     fig.show()
 
     # Question 3 - Using best value of k, fit a k-degree polynomial model and report test error
-    raise NotImplementedError()
+    k_star = np.argmin(loss_by_degree_validation)
+    estimator = PolynomialFitting(k_star)
+    estimator.fit(train_X, train_y)
+    print(f" {n_samples} samples with noise {noise}:")
+    print("Optimal polynomial degree: %d" % k_star)
+    print("Mean validation error: %.2f" % loss_by_degree_validation[k_star])
+    print("Test error: %.2f" % estimator.loss(test_X, test_y))
 
 
 def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 500):
@@ -94,3 +100,5 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
 if __name__ == '__main__':
     np.random.seed(0)
     select_polynomial_degree()
+    select_polynomial_degree(100, 0)
+    select_polynomial_degree(1500, 10)
