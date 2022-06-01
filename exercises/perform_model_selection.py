@@ -96,6 +96,7 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
 
     # Question 7 - Perform CV for different values of the regularization parameter for Ridge and Lasso regressions
     lambdas = np.linspace(0.01, 2.5, n_evaluations)
+    best_lamda = {}
 
     for name, model in zip(["ridge", "lasso"], [RidgeRegression, Lasso]):
         loss_by_lambda_train = []
@@ -105,22 +106,32 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
             t, v = cross_validate(estimator, train_X, train_y, mean_square_error, 5)
             loss_by_lambda_train.append(t)
             loss_by_lambda_validation.append(v)
-
+        best_lamda[name] = lambdas[np.argmin(loss_by_lambda_validation)]
         fig = go.Figure()
         fig.add_traces([
-            go.Scatter(x=lambdas, y=loss_by_lambda_train, name="Train error", mode='lines+markers', marker=dict(color='royalblue', symbol="x"), line=dict(color='royalblue', width=1.5)),
-            go.Scatter(x=lambdas, y=loss_by_lambda_validation, name="Validation error", mode='lines+markers', marker=dict(color='firebrick', symbol="circle"), line=dict(color='firebrick', width=1.5))
+            go.Scatter(x=lambdas, y=loss_by_lambda_train, name="Train error", mode='markers', marker=dict(color='royalblue', symbol="x")),
+            go.Scatter(x=lambdas, y=loss_by_lambda_validation, name="Validation error", mode='markers', marker=dict(color='firebrick', symbol="circle"))
         ])
         fig.update_layout(title=f"Loss from 5-fold cross validation on {name} regression model", xaxis_title="Lambda", yaxis_title="Loss")
         fig.show()
 
     # Question 8 - Compare best Ridge model, best Lasso model and Least Squares model
-    raise NotImplementedError()
+    for m, l in best_lamda.items():
+        print(f"Best lambda for {m} is: {l}")
+    ridge = RidgeRegression(best_lamda["ridge"])
+    lasso = Lasso(best_lamda["lasso"])
+    least_squares = LinearRegression()
+    ridge.fit(train_X, train_y)
+    lasso.fit(train_X, train_y)
+    least_squares.fit(train_X, train_y)
+    for name, model in zip(["ridge", "lasso", "least squares"], [ridge, lasso, least_squares]):
+        print(f"Test loss for {name} is: {mean_square_error(test_y, model.predict(test_X))}")
+
 
 
 if __name__ == '__main__':
     np.random.seed(0)
-    # select_polynomial_degree()
-    # select_polynomial_degree(100, 0)
-    # select_polynomial_degree(1500, 10)
+    select_polynomial_degree()
+    select_polynomial_degree(100, 0)
+    select_polynomial_degree(1500, 10)
     select_regularization_parameter()
